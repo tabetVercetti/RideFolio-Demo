@@ -1,64 +1,65 @@
-/* * {
-  box-sizing: border-box;
-}
-
-html,
-body,
-#root {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-} */
-
 body {
-  margin: 0;
+  margin: 0px;
 }
 #canvas-container {
-  width: 100vw;
-  height: 100vh;
+  width: 100vw;  /* 100% of the viewport width */
+  height: 100vh; /* 100% of the viewport height */
+  position: relative;  /* Ensures proper stacking context */
+  z-index: 1;  /* Lower than the buttons */
 }
 
+.settings-buttons {
+  display: flex; /* Arranges buttons in a row */
+  gap: 10px; /* Adds space between buttons */
+  position: absolute; /* Positions relative to screen */
+  bottom: 20px; /* 20px from the bottom */
+  left: 50%;  /* Move to center */
+  transform: translateX(-50%);  /* Shift back by half its width */
+  z-index: 10;  /* Ensure buttons are above the 3D scene */
+  pointer-events: auto; /* Make sure clicks are registered */
+}
 
-/* #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+.settings-buttons button {
+  background: none; /* No background color */
+  border: none; /* No border */
+  cursor: pointer; /* Turns the cursor into a pointer on hover */
+  padding: 5px; /* Adds 5px padding */
+}
+
+.settings-buttons button img {
+  width: 40px; /* Makes the image 40px wide */
+  height: 40px; /* Makes the image 40px tall */
+  transition: transform 0.2s; /* Smooth animation on transform */
+}
+
+.settings-buttons button img:hover {
+  transform: scale(1.2); /* Scales the image by 20% when hovered over */
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltip-text {
+  visibility: hidden;
+  background-color: black;
+  color: white;
   text-align: center;
+  padding: 5px 10px;
+  border-radius: 5px;
+  position: absolute;
+  bottom: 60px;  /* Adjusts the tooltip's position */
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;  /* Prevents text from wrapping */
+  font-size: 14px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;  /* Makes sure the tooltip itself doesn't interfere with clicks */
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-} */
