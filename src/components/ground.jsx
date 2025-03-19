@@ -58,11 +58,11 @@ function Ground({ activePanel, store }) {
 
 
   // Animate the ground textures
-  useFrame((state) => {
+  useFrame((state, delta) => {
     if (controls.useNormalMap) {
-      const t = -state.clock.getElapsedTime() * 0.1;
-      roughnessMap.offset.set(0, t % 1);
-      normalMap.offset.set(0, t % 1);
+      const speed = 0.1; // ✅ Adjust scrolling speed
+      roughnessMap.offset.y -= delta * speed; // ✅ Uses `delta` for smooth movement
+      normalMap.offset.y -= delta * speed;
     }
   });
 
@@ -87,8 +87,8 @@ function Ground({ activePanel, store }) {
   }, [controls.useNormalMap]);
 
   return (
-    <mesh ref={groundRef} position-y={-2} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-      <planeGeometry args={[100, 100]} />
+    <mesh ref={groundRef} position-y={0} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <planeGeometry args={[1000, 1000]} />
       <meshStandardMaterial {...materialProps} />
     </mesh>
   );

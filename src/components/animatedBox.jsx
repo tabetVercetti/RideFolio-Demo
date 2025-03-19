@@ -73,15 +73,15 @@ function AnimatedBox({ activePanel, store }) {
   useFrame((_, delta) => {
     if (boxRef.current) {
       const rotationSpeed = controls.speed * delta * 60;
-      boxRef.current.rotation.x += rotationSpeed;
+
       boxRef.current.rotation.y += rotationSpeed;
-      boxRef.current.rotation.z += rotationSpeed;
+
     }
   });
 
   return (
-    <mesh ref={boxRef}>
-      <boxGeometry args={[2, 3, 2]} />
+    <mesh ref={boxRef} position={[0,0.75,0]}>
+      <boxGeometry args={[5, 1.5, 2]} />
       <meshPhysicalMaterial {...materialProps} />
     </mesh>
   );

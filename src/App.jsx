@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, Suspense } from "react";
+import { useState, useEffect, useMemo, Suspense, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import { EffectComposer, ToneMapping } from "@react-three/postprocessing";
 import { ToneMappingMode, BlendFunction } from "postprocessing";
@@ -28,6 +28,7 @@ function App() {
   const [activePanel, setActivePanel] = useState(null);
   const [toneMappingMode, setToneMappingMode] = useState(ToneMappingMode.AGX); // Default to AgX
   const [exposure, setExposure] = useState(1); // Store exposure value
+  const orbitControlsRef = useRef(); // ✅ Add reference for OrbitControls
 
   // Create separate Leva stores
   const boxStore = useCreateStore();
@@ -69,9 +70,9 @@ function App() {
 
 
 
-      {/* 3D Scene */}
+      {/* 3D Scene (sRGB color space and gamma correction are enabled by default in canvas) */}
       <Canvas 
-        camera={{ position: [0, 2, 10] }} 
+        camera={{ position: [-10, 1.75, 0] }} 
         flat 
         gl={{
           powerPreference: "high-performance",
@@ -79,16 +80,20 @@ function App() {
           toneMappingExposure:exposure,
         }}>
         <Suspense fallback={<Html center>Loading</Html>}> 
-          <OrbitControls />
-          <CameraSettings activePanel={activePanel} store={stores.camera} setToneMappingMode={setToneMappingMode} setExposure={setExposure} />
+          <OrbitControls ref={orbitControlsRef} /> {/* ✅ Pass ref */}
+          <CameraSettings 
+            activePanel={activePanel} 
+            store={stores.camera} 
+            setToneMappingMode={setToneMappingMode} 
+            setExposure={setExposure}
+            orbitControlsRef={orbitControlsRef} // ✅ Pass the ref to CameraSettings 
+          />
           <BackgroundSettings activePanel={activePanel} store={stores.background} />
           <AnimatedBox activePanel={activePanel} store={stores.box} />
           <Ground activePanel={activePanel} store={stores.ground} />
           {/* Postprocessing */}
           <EffectComposer>
-            <ToneMapping
-              mode={toneMappingMode}
-            />
+            <ToneMapping mode={toneMappingMode} />
           </EffectComposer>
         </Suspense>
       </Canvas>
