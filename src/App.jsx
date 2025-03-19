@@ -27,6 +27,7 @@ import backgroundSettingsIconActive from "./assets/backgroundSettingsActive.png"
 function App() {
   const [activePanel, setActivePanel] = useState(null);
   const [toneMappingMode, setToneMappingMode] = useState(ToneMappingMode.AGX); // Default to AgX
+  const [exposure, setExposure] = useState(1); // Store exposure value
 
   // Create separate Leva stores
   const boxStore = useCreateStore();
@@ -75,10 +76,11 @@ function App() {
         gl={{
           powerPreference: "high-performance",
           antialias: false,
+          toneMappingExposure:exposure,
         }}>
         <Suspense fallback={<Html center>Loading</Html>}> 
           <OrbitControls />
-          <CameraSettings activePanel={activePanel} store={stores.camera} setToneMappingMode={setToneMappingMode} />
+          <CameraSettings activePanel={activePanel} store={stores.camera} setToneMappingMode={setToneMappingMode} setExposure={setExposure} />
           <BackgroundSettings activePanel={activePanel} store={stores.background} />
           <AnimatedBox activePanel={activePanel} store={stores.box} />
           <Ground activePanel={activePanel} store={stores.ground} />
