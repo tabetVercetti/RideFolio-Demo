@@ -1,8 +1,8 @@
-// export default App;
-
-import { useState } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { EffectComposer, ToneMapping } from "@react-three/postprocessing";
+import { ToneMappingMode, BlendFunction } from "postprocessing";
+import { Html, OrbitControls } from "@react-three/drei";
 import { LevaPanel, useCreateStore } from "leva";
 
 // Components
@@ -26,44 +26,69 @@ import backgroundSettingsIconActive from "./assets/backgroundSettingsActive.png"
 
 function App() {
   const [activePanel, setActivePanel] = useState(null);
+  const [toneMappingMode, setToneMappingMode] = useState(ToneMappingMode.AGX); // Default to AgX
 
   // Create separate Leva stores
-  const stores = {
-    box: useCreateStore(),
-    ground: useCreateStore(),
-    camera: useCreateStore(),
-    background: useCreateStore(),
-  };
+  const boxStore = useCreateStore();
+  const groundStore = useCreateStore();
+  const cameraStore = useCreateStore();
+  const backgroundStore = useCreateStore();
+  
+  const stores = useMemo(
+    () => ({
+      box: boxStore,
+      ground: groundStore,
+      camera: cameraStore,
+      background: backgroundStore,
+    }),
+    [boxStore, groundStore, cameraStore, backgroundStore]
+  );
 
-  const buttons = [
+  const buttons = useMemo(() => [
     { key: "box", icon: boxSettingsIcon, activeIcon: boxSettingsIconActive, label: "Box Settings" },
     { key: "ground", icon: groundSettingsIcon, activeIcon: groundSettingsIconActive, label: "Ground Settings" },
     { key: "camera", icon: cameraSettingsIcon, activeIcon: cameraSettingsIconActive, label: "Camera Settings" },
     { key: "background", icon: backgroundSettingsIcon, activeIcon: backgroundSettingsIconActive, label: "Background Settings" },
-  ];
+  ], []);
 
   return (
     <div id="canvas-container">
       {/* Settings Buttons */}
       <div className="settings-buttons">
-        {buttons.map(({ key, icon, activeIcon, label }) => (
-          <button key={key} className="tooltip" onClick={() => setActivePanel(activePanel === key ? null : key)}>
-            <img src={activePanel === key ? activeIcon : icon} alt={label} />
-            <span className="tooltip-text">{label}</span>
+      {buttons.map(({ key, icon, activeIcon, label }) => (
+        <button key={key} className="tooltip" onClick={() => setActivePanel(activePanel === key ? null : key)}>
+          <img src={activePanel === key ? activeIcon : icon} alt={label} />
+          <span className="tooltip-text">{label}</span>
           </button>
         ))}
       </div>
 
       {/* Leva Panel */}
-      {activePanel && <LevaPanel store={stores[activePanel]} titleBar={false} />}
+      {activePanel && <LevaPanel store={stores[activePanel]} titleBar={true} />}
+
+
 
       {/* 3D Scene */}
-      <Canvas>
-        <OrbitControls />
-        <CameraSettings activePanel={activePanel} store={stores.camera} />
-        <BackgroundSettings activePanel={activePanel} store={stores.background} />
-        <AnimatedBox activePanel={activePanel} store={stores.box} />
-        <Ground activePanel={activePanel} store={stores.ground} />
+      <Canvas 
+        camera={{ position: [0, 2, 10] }} 
+        flat 
+        gl={{
+          powerPreference: "high-performance",
+          antialias: false,
+        }}>
+        <Suspense fallback={<Html center>Loading</Html>}> 
+          <OrbitControls />
+          <CameraSettings activePanel={activePanel} store={stores.camera} setToneMappingMode={setToneMappingMode} />
+          <BackgroundSettings activePanel={activePanel} store={stores.background} />
+          <AnimatedBox activePanel={activePanel} store={stores.box} />
+          <Ground activePanel={activePanel} store={stores.ground} />
+          {/* Postprocessing */}
+          <EffectComposer>
+            <ToneMapping
+              mode={toneMappingMode}
+            />
+          </EffectComposer>
+        </Suspense>
       </Canvas>
     </div>
   );

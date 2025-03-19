@@ -1,129 +1,97 @@
-// export default Ground;
-
-import { useRef, useEffect, useMemo } from "react";
-import { useLoader } from "@react-three/fiber";
+import { useRef, useMemo, useEffect } from "react";
+import { useLoader, useFrame } from "@react-three/fiber";
 import { useControls, folder } from "leva";
 import * as THREE from "three";
-import normalMapTexture from "/textures/concrete_floor_worn_001_nor_gl_1k.png";
+import normalMapTexture from "/textures/terrain-normal.jpg";
+import roughnessMapTexture from "/textures/terrain-roughness.jpg";
 
-function Ground({ activePanel, store }) {
-  const groundRef = useRef();
-
-  // Load Normal Map texture
-  const normalMap = useLoader(THREE.TextureLoader, normalMapTexture);
-
-  useEffect(() => {
-    if (normalMap) {
-      normalMap.wrapS = normalMap.wrapT = THREE.RepeatWrapping;
-      normalMap.repeat.set(100, 100);
-      normalMap.needsUpdate = true;
-    }
-  }, [normalMap]);
-
-  // Leva controls
-  const {
-    color,
-    useNormalMap,
-    metalness,
-    roughness,
-    iridescence,
-    iridescenceIOR,
-    clearcoat,
-    clearcoatRoughness,
-    transmission,
-    ior,
-    specularIntensity,
-    specularColor,
-    transparent,
-    opacity,
-  } = useControls(
+// Function to handle Leva UI settings
+function useGroundControls(store, activePanel) {
+  return useControls(
     "Ground Settings",
     {
       color: "#ff0000",
       textures: folder(
-        { useNormalMap: false },
+        {
+          useNormalMap: false,
+          normalScale: { value: 0.3, min: 0, max: 2, step: 0.01 }, 
+          repeatScale: { value: 10, min: 1, max: 50, step: 1 }, 
+          textureRotation: { value: 0, min: 0, max: Math.PI * 2, step: 0.1 }, 
+        },
         { collapsed: true }
       ),
       properties: folder(
         {
           metalness: { value: 0.5, min: 0, max: 1, step: 0.01 },
           roughness: { value: 0.5, min: 0, max: 1, step: 0.01 },
-          iridescence: { value: 0, min: 0, max: 1, step: 0.01 },
-          iridescenceIOR: { value: 1.3, min: 1, max: 2.5, step: 0.01 },
-          clearcoat: { value: 0, min: 0, max: 1, step: 0.01 },
-          clearcoatRoughness: { value: 0, min: 0, max: 1, step: 0.01 },
-          transmission: { value: 0, min: 0, max: 1, step: 0.01 },
-          ior: { value: 1.5, min: 1, max: 2.5, step: 0.01 },
-          specularIntensity: { value: 1, min: 0, max: 2, step: 0.01 },
-          specularColor: "#ffffff",
-          transparent: false,
-          opacity: { value: 1, min: 0, max: 1, step: 0.01 },
         },
         { collapsed: true }
       ),
     },
     { store, hidden: activePanel !== "ground" }
   );
+}
 
-  // Memoized material properties to prevent unnecessary updates
+function Ground({ activePanel, store }) {
+  const groundRef = useRef();
+  const controls = useGroundControls(store, activePanel);
+
+  // Load and configure the normal & roughness textures
+  const [normalMap, roughnessMap] = useLoader(THREE.TextureLoader, [normalMapTexture, roughnessMapTexture]);
+
+  useEffect(() => {
+    [normalMap, roughnessMap].forEach((map) => {
+      map.wrapS = map.wrapT = THREE.RepeatWrapping;
+      map.repeat.set(controls.repeatScale, controls.repeatScale);
+      map.rotation = controls.textureRotation;
+      map.needsUpdate = true;
+    });
+    
+    normalMap.encoding = THREE.LinearEncoding;
+
+    // Cleanup function to dispose of textures when component unmounts
+    return () => {
+      normalMap.dispose();
+      roughnessMap.dispose();
+    };
+  }, [normalMap, roughnessMap, controls.repeatScale, controls.textureRotation]);
+
+
+  // Animate the ground textures
+  useFrame((state) => {
+    if (controls.useNormalMap) {
+      const t = -state.clock.getElapsedTime() * 0.1;
+      roughnessMap.offset.set(0, t % 1);
+      normalMap.offset.set(0, t % 1);
+    }
+  });
+
+  // Memoized material properties for performance
   const materialProps = useMemo(
     () => ({
-      color,
-      metalness,
-      roughness,
-      iridescence,
-      iridescenceIOR,
-      clearcoat,
-      clearcoatRoughness,
-      transmission,
-      ior,
-      specularIntensity,
-      specularColor: new THREE.Color(specularColor), // Convert to THREE.Color
-      transparent: opacity < 1 ? true : transparent, // Auto-enable transparency
-      opacity,
-      normalMap: useNormalMap ? normalMap : null, // Toggle normal map dynamically
+      color: controls.color,
+      metalness: controls.metalness,
+      roughness: controls.roughness,
+      normalMap: controls.useNormalMap ? normalMap : null,
+      normalScale: controls.useNormalMap ? new THREE.Vector2(controls.normalScale, controls.normalScale) : null,
+      roughnessMap: controls.useNormalMap ? roughnessMap : null,
     }),
-    [
-      color,
-      metalness,
-      roughness,
-      iridescence,
-      iridescenceIOR,
-      clearcoat,
-      clearcoatRoughness,
-      transmission,
-      ior,
-      specularIntensity,
-      specularColor,
-      transparent,
-      opacity,
-      useNormalMap,
-      normalMap,
-    ]
+    [controls, normalMap, roughnessMap]
   );
+
+  // Force material update when `useNormalMap` changes
+  useEffect(() => {
+    if (groundRef.current) {
+      groundRef.current.material.needsUpdate = true;
+    }
+  }, [controls.useNormalMap]);
 
   return (
     <mesh ref={groundRef} position-y={-2} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-      <planeGeometry args={[10, 10]} />
-      <meshPhysicalMaterial
-        color={color}
-        metalness={metalness ?? 0.5}
-        roughness={roughness ?? 0.5}
-        iridescence={iridescence ?? 0}
-        iridescenceIOR={iridescenceIOR ?? 1.3}
-        clearcoat={clearcoat ?? 0}
-        clearcoatRoughness={clearcoatRoughness ?? 0}
-        transmission={transmission ?? 0}
-        ior={ior ?? 1.5}
-        specularIntensity={specularIntensity ?? 1}
-        specularColor={specularColor ?? "#ffffff"}
-        transparent={transparent ?? false}
-        opacity={opacity ?? 1}
-        normalMap={useNormalMap ? normalMap : undefined} 
-       />
+      <planeGeometry args={[100, 100]} />
+      <meshStandardMaterial {...materialProps} />
     </mesh>
   );
 }
 
 export default Ground;
-
