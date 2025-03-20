@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, Suspense, useRef } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { EffectComposer, ToneMapping } from "@react-three/postprocessing";
 import { ToneMappingMode, BlendFunction } from "postprocessing";
 import { Html, OrbitControls } from "@react-three/drei";
@@ -29,6 +29,7 @@ function App() {
   const [toneMappingMode, setToneMappingMode] = useState(ToneMappingMode.AGX); // Default to AgX
   const [exposure, setExposure] = useState(1); // Store exposure value
   const orbitControlsRef = useRef(); // ✅ Add reference for OrbitControls
+  const cameraRef = useRef();
 
   // Create separate Leva stores
   const boxStore = useCreateStore();
@@ -80,7 +81,11 @@ function App() {
           toneMappingExposure:exposure,
         }}>
         <Suspense fallback={<Html center>Loading</Html>}> 
-          <OrbitControls ref={orbitControlsRef} /> {/* ✅ Pass ref */}
+          <OrbitControls   
+            ref={orbitControlsRef} 
+            minDistance={3} // ✅ Prevents zooming too close
+            maxDistance={40} // ✅ Prevents zooming too far
+          />
           <CameraSettings 
             activePanel={activePanel} 
             store={stores.camera} 

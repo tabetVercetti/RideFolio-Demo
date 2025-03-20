@@ -56,13 +56,14 @@ function Ground({ activePanel, store }) {
     };
   }, [normalMap, roughnessMap, controls.repeatScale, controls.textureRotation]);
 
-
-  // Animate the ground textures
   useFrame((state, delta) => {
     if (controls.useNormalMap) {
-      const speed = 0.1; // ✅ Adjust scrolling speed
-      roughnessMap.offset.y -= delta * speed; // ✅ Uses `delta` for smooth movement
-      normalMap.offset.y -= delta * speed;
+      const baseSpeed = 0.01; // ✅ Base scrolling speed
+      const scaleFactor = controls.repeatScale; // ✅ The number of texture repetitions
+      const adjustedSpeed = baseSpeed * scaleFactor; // ✅ Normalize speed based on scale
+  
+      roughnessMap.offset.y -= delta * adjustedSpeed;
+      normalMap.offset.y -= delta * adjustedSpeed;
     }
   });
 

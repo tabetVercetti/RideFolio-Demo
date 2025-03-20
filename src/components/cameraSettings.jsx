@@ -56,6 +56,31 @@ function CameraSettings({ activePanel, store, setToneMappingMode, setExposure, o
     }
   });
 
+  // ✅ Prevent the camera from going below ground (y < 0)
+  useFrame(() => {
+    if (orbitControlsRef.current) {
+      const controls = orbitControlsRef.current;
+      const camera = controls.object; // ✅ Correct reference to camera
+      const target = controls.target;
+
+      const distanceCameraToTarget = camera.position.distanceTo(target);
+      const maxCamPolarAngle = (Math.PI / 2.01) + Math.asin(Math.max(Math.min(target.y / distanceCameraToTarget, 1), -1));
+
+      controls.maxPolarAngle = maxCamPolarAngle; // ✅ Adaptive camera limit
+
+      if (camera.position.y < 0.15) {
+        camera.position.y = 0.15;
+      }
+  
+      // ✅ Also prevent the target from going underground
+      if (target.y < 0) {
+        target.y = 0;
+      }
+  
+      controls.update(); // ✅ Apply changes
+    }
+  });
+
   const controlsUI = useCameraControls(store, activePanel, resetCameraTarget);
 
   // Update the camera's FOV
