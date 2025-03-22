@@ -10,20 +10,16 @@ function useGroundControls(store, activePanel) {
   return useControls(
     "Ground Settings",
     {
+      hide: false,
       color: "#ff0000",
+      metalness: { value: 0.5, min: 0, max: 1, step: 0.01 },
+      roughness: { value: 0.5, min: 0, max: 1, step: 0.01 },
       textures: folder(
         {
           useNormalMap: false,
           normalScale: { value: 0.3, min: 0, max: 2, step: 0.01 }, 
           repeatScale: { value: 10, min: 1, max: 50, step: 1 }, 
           textureRotation: { value: 0, min: 0, max: Math.PI * 2, step: 0.1 }, 
-        },
-        { collapsed: true }
-      ),
-      properties: folder(
-        {
-          metalness: { value: 0.5, min: 0, max: 1, step: 0.01 },
-          roughness: { value: 0.5, min: 0, max: 1, step: 0.01 },
         },
         { collapsed: true }
       ),
@@ -87,7 +83,7 @@ function Ground({ activePanel, store }) {
     }
   }, [controls.useNormalMap]);
 
-  return (
+  return controls.hide ? null : (
     <mesh ref={groundRef} position-y={0} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
       <planeGeometry args={[1000, 1000]} />
       <meshStandardMaterial {...materialProps} />

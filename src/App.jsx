@@ -26,8 +26,8 @@ import backgroundSettingsIcon from "./assets/backgroundSettings.png";
 import backgroundSettingsIconActive from "./assets/backgroundSettingsActive.png";
 import generalSettingsIcon from "./assets/generalSettings.png"; // Add your own icon
 import generalSettingsIconActive from "./assets/generalSettingsActive.png";
-import fullscreenIcon from "./assets/fullscreen.png"
-import fullscreenIconActive from "./assets/fullscreenActive.png"
+import fullscreenIcon from "./assets/fullscreen.png";
+import fullscreenIconActive from "./assets/fullscreenActive.png";
 
 function App() {
   const [activePanel, setActivePanel] = useState(null);
